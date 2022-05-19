@@ -1,0 +1,128 @@
+version: "3.9"
+services:
+### accounts database that account service will be connected to
+  accounts_database:
+    container_name: postgres_container
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres 
+      POSTGRES_USER: postgres 
+      POSTGRES_DB: accounts
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - new
+    healthcheck:
+      test: pg_isready -U postgres -d accounts
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  transactions_database:
+    container_name: postgres_container_2
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pp 
+      POSTGRES_USER: pp 
+      POSTGRES_DB: transactions
+    volumes:
+      - postgres1:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - new
+    healthcheck:
+      test: pg_isready -U pp -d transactions
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+### REDIS
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache:/data
+    networks:
+      - new
+
+  accounts:
+    build:
+      context: .
+      dockerfile: ./cmd/accounts/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./cmd/accounts/config-prod.yaml:/config.yaml
+    environment:
+    - "DATABASE_HOST=accounts_database"
+    - "DATABASE_USERNAME=postgres"
+    - "DATABASE_PASSWORD=postgres"
+    - "DATABASE_PORT=5432"
+    - "DATABASE_DATABASE=accounts"
+    - "REDIS_HOST=cache"
+    - "REDIS_PORT=6379"
+    depends_on:
+      - "accounts_database"
+      - "cache"
+    restart: on-failure
+    networks:
+      - new
+
+  transactions:
+    build:
+      context: .
+      dockerfile: ./cmd/transactions/Dockerfile
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./cmd/transactions/config-prod.yaml:/config.yaml
+    depends_on:
+      - "transactions_database"
+      - "cache"
+    restart: on-failure
+    networks:
+      - new
+
+  migrate:
+    image: migrate/migrate
+    networks:
+        - new
+    depends_on:
+      - accounts_database
+    restart: on-failure
+    volumes:
+        - ./pkg/database/migrations/accounts:/accounts_migrations
+    command: ["-path", "/accounts_migrations", "-database",  "postgres://postgres:postgres@accounts_database:5432/accounts?sslmode=disable", "up"]
+
+    links: 
+        - accounts_database
+  
+  migrate_transactions:
+    image: migrate/migrate
+    networks:
+        - new
+    depends_on:
+      - transactions_database
+    restart: on-failure
+    volumes:
+        - ./pkg/database/migrations/transactions:/transactions_migrations
+    command: ["-path", "/transactions_migrations", "-database",  "postgres://pp:pp@transactions_database:5432/transactions?sslmode=disable", "up"]
+    links: 
+        - transactions_database
+networks:
+      new:
+volumes:
+  postgres:
+  postgres1:
+  config:
+  accounts_migrations:
+  cache:
+    driver: local

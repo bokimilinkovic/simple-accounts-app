@@ -1,0 +1,11 @@
+database:
+  host: transactions_database
+  username: pp
+  password: pp 
+  port: 5432
+  database: transactions
+
+redis:
+  host: cache
+  port: 6379
+  db: 0
