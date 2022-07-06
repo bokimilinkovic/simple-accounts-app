@@ -1,4 +1,4 @@
-Simple app that has main server that receives HTTP request for all CRUD operations for manipulation with accounts.
+Simple  app that has main server that receives HTTP request for all CRUD operations for manipulation with accounts.
 
 ## e.GET("/accounts", accountHandler.GetAccounts) Returns all accounts with balances
 
