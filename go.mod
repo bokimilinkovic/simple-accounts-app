@@ -7,6 +7,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.7.2
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.11.0
 	gorm.io/driver/postgres v1.3.5
 	gorm.io/gorm v1.23.5
@@ -31,6 +32,7 @@ require (
 	github.com/jackc/pgx/v4 v4.16.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
