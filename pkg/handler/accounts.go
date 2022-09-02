@@ -27,7 +27,7 @@ func NewAccountHandler(db *gorm.DB) *AccountHandler {
 func (a *AccountHandler) GetAccounts(c echo.Context) error {
 	var accounts []model.Account
 	if err := a.db.WithContext(c.Request().Context()).Find(&accounts).Error; err != nil {
-		c.String(http.StatusInternalServerError, "error getting all accounts: "+err.Error())
+		return c.String(http.StatusInternalServerError, "error getting all accounts: "+err.Error())
 	}
 
 	return c.JSON(http.StatusOK, accounts)
@@ -37,7 +37,7 @@ func (a *AccountHandler) GetAccounts(c echo.Context) error {
 func (a *AccountHandler) CreateAccount(c echo.Context) error {
 	var account AccountDTO
 	if err := c.Bind(&account); err != nil {
-		c.String(http.StatusBadRequest, "error binding body: "+err.Error())
+		return c.String(http.StatusBadRequest, "error binding body: "+err.Error())
 	}
 
 	accountDb := &model.Account{
@@ -46,7 +46,7 @@ func (a *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 
 	if err := a.db.WithContext(c.Request().Context()).Create(&accountDb).Error; err != nil {
-		c.String(http.StatusInternalServerError, "error creating new account: "+err.Error())
+		return c.String(http.StatusInternalServerError, "error creating new account: "+err.Error())
 	}
 
 	return c.JSON(http.StatusCreated, accountDb)
@@ -61,7 +61,7 @@ func (a *AccountHandler) GetAccount(c echo.Context) error {
 
 	var account model.Account
 	if err := a.db.WithContext(c.Request().Context()).Find(&account, "id = ?", id).Error; err != nil {
-		c.String(http.StatusInternalServerError, "error getting one account: "+err.Error())
+		return c.String(http.StatusInternalServerError, "error getting one account: "+err.Error())
 	}
 
 	return c.JSON(http.StatusOK, account)
@@ -75,7 +75,7 @@ func (a *AccountHandler) DeleteAccount(c echo.Context) error {
 	}
 
 	if err := a.db.WithContext(c.Request().Context()).Delete(&model.Account{}, "id = ?", id).Error; err != nil {
-		c.String(http.StatusInternalServerError, "error deleting account: "+err.Error())
+		return c.String(http.StatusInternalServerError, "error deleting account: "+err.Error())
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -90,7 +90,7 @@ func (a *AccountHandler) UpdateAccount(c echo.Context) error {
 
 	var accountDTO AccountDTO
 	if err := c.Bind(&accountDTO); err != nil {
-		c.String(http.StatusBadRequest, "error binding body: "+err.Error())
+		return c.String(http.StatusBadRequest, "error binding body: "+err.Error())
 	}
 
 	// first fetch account from DB
@@ -100,7 +100,7 @@ func (a *AccountHandler) UpdateAccount(c echo.Context) error {
 		return c.String(http.StatusNotFound, "account with that ID does not exist.")
 	}
 	if err != nil {
-		c.String(http.StatusInternalServerError, "unknown error getting account from DB: "+err.Error())
+		return c.String(http.StatusInternalServerError, "unknown error getting account from DB: "+err.Error())
 	}
 
 	account.Balance = accountDTO.Balance
